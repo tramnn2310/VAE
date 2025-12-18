@@ -1,161 +1,128 @@
-# Automated Defect Detection in Nanomaterial-Coated Fabrics Using Variational Autoencoder
+# Unsupervised Defect Detection on Nanomaterial-Coated Fabrics (VAE)
 
-## Overview
+## TL;DR
 
-This repository contains the implementation of an **unsupervised defect detection framework** for **nanomaterial-coated fabrics**, developed as part of my **Master’s thesis** and subsequent academic paper:
-
-> *Automated Defect Detection in Nanomaterial-Coated-Fabrics Using Variational Autoencoder*
-
-The proposed method applies a **Variational Autoencoder (VAE)** combined with **image post-processing techniques** to automatically detect regions with **abnormally high nanomaterial density** on coated cotton fabrics, which can negatively impact the performance and safety of smart textile applications.
+- Built an **end-to-end unsupervised anomaly detection pipeline** using a Variational Autoencoder (VAE)
+- Applied to **real industrial fabric images** with no defect labels
+- Combined **deep learning + classical image processing** for robust localization
+- Achieved **93.2% defect recognition rate** and **IoU up to 0.923**
+- Project originated from a **Master’s thesis + published research**, implemented as a reproducible Jupyter Notebook
 
 ---
 
-## Problem Motivation
+## Project Overview
 
-Smart textiles coated with nanomaterials such as **single-walled carbon nanotubes (SW-CNT)** are widely used in:
+This repository implements an **unsupervised defect detection system** for **nanomaterial-coated fabrics**, designed for use cases where:
 
-- Wearable health monitoring
-- Textile electrodes for bio-signal acquisition
-- Responsive and sensing garments
-
-However, **manual coating processes** often introduce **local regions with excessive particle density**, leading to:
-- Electrical instability
-- Signal distortion
-- Safety risks in wearable applications
-
-Detecting these defective regions is challenging because:
 - Defect labels are unavailable or application-dependent
-- Defects exhibit irregular shapes and sizes
-- Traditional rule-based image processing lacks robustness
+- Defects have **irregular shapes and sizes**
+- Visual appearance correlates with **functional degradation** (e.g., electrical instability)
 
-This work addresses these challenges using an **unsupervised deep learning approach**.
+The system uses a **Variational Autoencoder (VAE)** to learn dominant fabric textures and detects anomalies through **reconstruction discrepancies**, followed by targeted post-processing to extract defect regions.
 
----
-
-## Why Variational Autoencoder (VAE)
-
-A **Variational Autoencoder** was selected due to its ability to:
-
-- Learn the **dominant distribution of fabric textures** without labels
-- Encode images into a **regularized latent space**
-- Reconstruct defect-free representations of coated fabrics
-
-Key assumption:
-- The VAE learns dominant (non-defective) features
-- Regions with abnormal particle density produce **reconstruction discrepancies**
-- These discrepancies can be exploited to localize defects
+This project demonstrates **full pipeline ownership**, from data preprocessing to model training, inference, and evaluation.
 
 ---
 
-## Methodology
+## Business / Engineering Motivation
 
-### 1. Data Acquisition & Preprocessing
+In smart textile and manufacturing contexts:
 
-- Cotton fabrics coated with commercial **SW-CNT**
-- Fabric samples scanned using a flatbed scanner
-- Images converted to grayscale and enhanced using **contrast stretching**
-- Images divided into fixed-size patches for training
+- Manual coating processes introduce **localized defects**
+- These defects impact **signal quality, safety, and reliability**
+- Supervised inspection systems are costly and brittle due to labeling requirements
+
+This project addresses those constraints by using:
+- **Unsupervised learning**
+- **Minimal assumptions about defect shape**
+- **Hybrid ML + image processing techniques**
+
+The approach generalizes to other surface-inspection problems beyond textiles.
 
 ---
 
-### 2. VAE Architecture
+## System Design
 
-The VAE consists of:
+### 1. Data Handling & Preprocessing
 
-- **Encoder**  
-  - 2D convolutional layers with ReLU and batch normalization  
+- Input: scanned images of coated cotton fabric
+- Convert RGB → grayscale
+- Apply **contrast stretching** to amplify defect-related intensity differences
+- Split full images into fixed-size patches for training stability
+
+---
+
+### 2. Model Architecture (VAE)
+
+- **Encoder**
+  - CNN-based feature extractor
   - Outputs latent mean and variance
+- **Latent Space**
+  - Gaussian prior
+  - Reparameterization trick for backpropagation
+- **Decoder**
+  - Transposed convolutions
+  - Reconstructs dominant (non-defective) fabric patterns
 
-- **Latent Space**  
-  - Gaussian prior  
-  - Reparameterization trick for stochastic sampling
-
-- **Decoder**  
-  - Transposed convolution layers  
-  - Reconstructs dominant fabric features
-
-The loss function combines:
+Loss function:
 - Reconstruction loss
 - KL-divergence regularization
 
----
-
-### 3. Training Strategy
-
-- Trained on **unlabeled scanned fabric images**
-- Dataset includes both normal and defective regions, but:
-  - Dominant (non-defective) patterns are learned
-- No explicit defect annotations are required
+The model is trained **without defect labels**.
 
 ---
 
-### 4. Defect Localization (Post-Processing)
+### 3. Inference & Defect Localization
 
-After reconstruction:
+Rather than relying on raw reconstruction error alone, the pipeline:
 
-1. The original image and reconstructed image are **summed**
-2. Bright regions correspond to normal fabric
-3. Dark regions correspond to potential defects
-4. Defective regions are extracted using:
-   - Intensity thresholding in HSV color space
+1. Reconstructs the input image using the trained VAE
+2. Combines original and reconstructed images to enhance contrast
+3. Applies:
+   - Intensity thresholding (HSV space)
    - Morphological filtering
-   - Connectivity analysis
+   - Connectivity constraints
+4. Outputs a **binary defect mask** aligned with functional defect regions
 
-This hybrid approach improves localization accuracy compared to raw reconstruction error alone.
+This hybrid approach improves localization robustness in noisy, real-world data.
 
 ---
 
-## Experimental Validation
+## Notebook: `EN_VAE_Anomalydetection.ipynb`
 
-### Ground Truth Definition
+- Full implementation of the pipeline
+- Converted from the original **MATLAB Live Script**
+- Organized as a **research-grade, step-by-step workflow**:
+  - Image preprocessing
+  - Patch extraction
+  - VAE definition and training
+  - Reconstruction
+  - Post-processing and visualization
 
-- Defective regions were defined based on:
-  - **Sheet resistance measurements**
-  - **Electrical safety and signal quality experiments**
-- Regions with resistance deviation exceeding **45%** were labeled as defective
+The notebook prioritizes **clarity and reproducibility** over production optimization.
 
 ---
 
 ## Results
 
-The proposed method achieved:
-
-- **Recognition rate:** **93.2%**
+- **Defect recognition rate:** **93.2%**
 - **Intersection over Union (IoU):**
   - Up to **0.923** for high-density defect regions
-  - Average IoU of **0.76** across the test dataset
+  - Average IoU **0.76** across test data
 
-Key observations:
-- Accurate localization of high-density nanomaterial regions
-- Robust performance despite limited training data
-- Effective separation of defective vs non-defective areas
+Ground truth was defined using **electrical measurements and functional validation**, not manual pixel labeling.
 
-These results validate the effectiveness of combining **VAE-based feature learning** with **image post-processing** for defect detection in coated fabrics.
+These results demonstrate that the model learns **functionally meaningful anomalies**, not just visual noise.
 
 ---
 
-## Key Contributions
+## Technologies & Tools
 
-- Proposed an **unsupervised defect detection framework** for nanomaterial-coated fabrics
-- Demonstrated VAE effectiveness without defect-free training data
-- Introduced a practical post-processing pipeline for defect localization
-- Validated results through **electrical and morphological experiments**
-- Advanced quality control techniques for smart textile applications
-
----
-
-## Technologies Used
-
-- Python / MATLAB (R2021b)
+- Python
 - Variational Autoencoder (CNN-based)
-- NumPy
-- Image processing techniques (thresholding, morphology)
+- Image processing (thresholding, morphology)
 - Jupyter Notebook
+- MATLAB (original experimental implementation)
 
 ---
-
-## Note
-
-This implementation is provided as a Jupyter Notebook (EN_VAE_Anomalydetection.ipynb) converted from a **MATLAB Live Script**, preserving the original experimental logic and workflow.
-The notebook structure closely follows the original MATLAB implementation used in the thesis and paper.
 
