@@ -154,10 +154,8 @@ These results validate the effectiveness of combining **VAE-based feature learni
 
 ---
 
-## How to Run
+## Note
 
-1. Clone the repository
-2. Open the notebook:
+This implementation is provided as a Jupyter Notebook converted from a **MATLAB Live Script**, preserving the original experimental logic and workflow.
+The notebook structure closely follows the original MATLAB implementation used in the thesis and paper.
 
-   ```bash
-   VAE.ipynb
