@@ -1,127 +1,163 @@
-# Fabric Defect Detection Using Variational Autoencoder (VAE)
+# Automated Defect Detection in Nanomaterial-Coated Fabrics Using Variational Autoencoder
 
 ## Overview
 
-This repository contains an implementation of a **Variational Autoencoder (VAE)** for **unsupervised anomaly detection** on fabric images.  
-The project was developed as part of my **Master’s thesis**, with the goal of detecting surface defects in textile materials without relying on labeled defect data.
+This repository contains the implementation of an **unsupervised defect detection framework** for **nanomaterial-coated fabrics**, developed as part of my **Master’s thesis** and subsequent academic paper:
 
-The approach trains a generative model on **normal (defect-free) fabric images only**, then identifies anomalies based on reconstruction quality.
+> *Automated Defect Detection in Nanomaterial-Coated-Fabrics Using Variational Autoencoder*
+
+The proposed method applies a **Variational Autoencoder (VAE)** combined with **image post-processing techniques** to automatically detect regions with **abnormally high nanomaterial density** on coated cotton fabrics, which can negatively impact the performance and safety of smart textile applications.
 
 ---
 
-## Problem Statement
+## Problem Motivation
 
-In industrial textile inspection:
+Smart textiles coated with nanomaterials such as **single-walled carbon nanotubes (SW-CNT)** are widely used in:
 
-- Defective samples are rare, diverse, and expensive to label
-- Supervised learning approaches require large, balanced datasets
-- Traditional rule-based image processing struggles with complex textures
+- Wearable health monitoring
+- Textile electrodes for bio-signal acquisition
+- Responsive and sensing garments
 
-This project addresses these challenges by applying **unsupervised learning**, enabling defect detection without explicit defect annotations.
+However, **manual coating processes** often introduce **local regions with excessive particle density**, leading to:
+- Electrical instability
+- Signal distortion
+- Safety risks in wearable applications
+
+Detecting these defective regions is challenging because:
+- Defect labels are unavailable or application-dependent
+- Defects exhibit irregular shapes and sizes
+- Traditional rule-based image processing lacks robustness
+
+This work addresses these challenges using an **unsupervised deep learning approach**.
 
 ---
 
 ## Why Variational Autoencoder (VAE)
 
-A Variational Autoencoder was selected because:
+A **Variational Autoencoder** was selected due to its ability to:
 
-- It learns a **probabilistic latent representation** of normal fabric textures
-- Latent space regularization improves generalization to unseen data
-- Reconstruction-based anomaly detection is effective for subtle texture defects
+- Learn the **dominant distribution of fabric textures** without labels
+- Encode images into a **regularized latent space**
+- Reconstruct defect-free representations of coated fabrics
 
-**Key assumption**:  
-- Normal fabric patterns are well reconstructed  
-- Defective patterns produce higher reconstruction error
+Key assumption:
+- The VAE learns dominant (non-defective) features
+- Regions with abnormal particle density produce **reconstruction discrepancies**
+- These discrepancies can be exploited to localize defects
 
 ---
 
 ## Methodology
 
-### 1. Data Preparation
+### 1. Data Acquisition & Preprocessing
 
-- Input data consists of fabric images
-- Images are resized and normalized
-- Only **non-defective (normal)** samples are used during training
+- Cotton fabrics coated with commercial **SW-CNT**
+- Fabric samples scanned using a flatbed scanner
+- Images converted to grayscale and enhanced using **contrast stretching**
+- Images divided into fixed-size patches for training
 
 ---
 
-### 2. Model Architecture
+### 2. VAE Architecture
 
 The VAE consists of:
 
-- **Encoder**: maps input images to a latent distribution (mean and variance)
-- **Latent space**: sampled using the reparameterization trick
-- **Decoder**: reconstructs images from latent vectors
+- **Encoder**  
+  - 2D convolutional layers with ReLU and batch normalization  
+  - Outputs latent mean and variance
+
+- **Latent Space**  
+  - Gaussian prior  
+  - Reparameterization trick for stochastic sampling
+
+- **Decoder**  
+  - Transposed convolution layers  
+  - Reconstructs dominant fabric features
 
 The loss function combines:
-
-- **Reconstruction loss** (pixel-level difference)
-- **KL divergence loss** (latent space regularization)
-
----
-
-### 3. Training Process
-
-- The model is trained exclusively on normal fabric images
-- The VAE learns the distribution of defect-free textures
-- No defect labels are required during training
+- Reconstruction loss
+- KL-divergence regularization
 
 ---
 
-### 4. Anomaly Detection
+### 3. Training Strategy
 
-During inference:
+- Trained on **unlabeled scanned fabric images**
+- Dataset includes both normal and defective regions, but:
+  - Dominant (non-defective) patterns are learned
+- No explicit defect annotations are required
 
-1. Images are passed through the trained VAE
-2. Reconstruction error is calculated for each image
-3. Images with high reconstruction error are flagged as anomalies
+---
+
+### 4. Defect Localization (Post-Processing)
+
+After reconstruction:
+
+1. The original image and reconstructed image are **summed**
+2. Bright regions correspond to normal fabric
+3. Dark regions correspond to potential defects
+4. Defective regions are extracted using:
+   - Intensity thresholding in HSV color space
+   - Morphological filtering
+   - Connectivity analysis
+
+This hybrid approach improves localization accuracy compared to raw reconstruction error alone.
+
+---
+
+## Experimental Validation
+
+### Ground Truth Definition
+
+- Defective regions were defined based on:
+  - **Sheet resistance measurements**
+  - **Electrical safety and signal quality experiments**
+- Regions with resistance deviation exceeding **45%** were labeled as defective
 
 ---
 
 ## Results
 
-The trained model demonstrates:
+The proposed method achieved:
 
-- Accurate reconstruction of normal fabric textures
-- Degraded reconstruction in defective regions
-- Clear separation between normal and anomalous samples using reconstruction error
+- **Recognition rate:** **93.2%**
+- **Intersection over Union (IoU):**
+  - Up to **0.923** for high-density defect regions
+  - Average IoU of **0.76** across the test dataset
 
-Qualitative analysis shows that defects such as:
+Key observations:
+- Accurate localization of high-density nanomaterial regions
+- Robust performance despite limited training data
+- Effective separation of defective vs non-defective areas
 
-- Local texture irregularities
-- Structural distortions
-- Abnormal surface patterns
-
-are effectively detected through reconstruction differences.
-
-This validates the suitability of VAE-based models for **unsupervised textile defect detection**.
+These results validate the effectiveness of combining **VAE-based feature learning** with **image post-processing** for defect detection in coated fabrics.
 
 ---
 
 ## Key Contributions
 
-- Implemented an end-to-end VAE pipeline for fabric anomaly detection
-- Demonstrated unsupervised learning without defect labels
-- Validated reconstruction-based anomaly scoring
-- Proposed a scalable solution for industrial inspection systems
+- Proposed an **unsupervised defect detection framework** for nanomaterial-coated fabrics
+- Demonstrated VAE effectiveness without defect-free training data
+- Introduced a practical post-processing pipeline for defect localization
+- Validated results through **electrical and morphological experiments**
+- Advanced quality control techniques for smart textile applications
 
 ---
 
 ## Technologies Used
 
-- Python  
-- Deep Learning Framework (TensorFlow)
-- Keras, NumPy  
-- OpenCV  
-- Jupyter Notebook  
+- Python / MATLAB (R2021b)
+- Variational Autoencoder (CNN-based)
+- NumPy
+- Image processing techniques (thresholding, morphology)
+- Jupyter Notebook
 
 ---
 
 ## How to Run
 
-1. Clone this repository
-2. Install required dependencies
-3. Open the notebook:
+1. Clone the repository
+2. Open the notebook:
 
    ```bash
    VAE.ipynb
