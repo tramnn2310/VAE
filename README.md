@@ -156,6 +156,6 @@ These results validate the effectiveness of combining **VAE-based feature learni
 
 ## Note
 
-This implementation is provided as a Jupyter Notebook converted from a **MATLAB Live Script**, preserving the original experimental logic and workflow.
+This implementation is provided as a Jupyter Notebook (EN_VAE_Anomalydetection.ipynb) converted from a **MATLAB Live Script**, preserving the original experimental logic and workflow.
 The notebook structure closely follows the original MATLAB implementation used in the thesis and paper.
 
